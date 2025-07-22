@@ -7,6 +7,25 @@ pub enum Either<E, V> {
     Right(V),
 }
 
+impl<E, V> Either<E, V> {
+    pub fn or(self, v: Either<E, V>) -> Either<E, V> {
+        match self {
+            Either::Left(_) => v,
+            Either::Right(v) => Either::pure(v),
+        }
+    }
+
+    pub fn or_else<F>(self, mut f: F) -> Either<E, V>
+    where
+        F: FnMut() -> Either<E, V>,
+    {
+        match self {
+            Either::Left(_) => f(),
+            Either::Right(v) => Either::pure(v),
+        }
+    }
+}
+
 impl<E: FpEq, V: FpEq> FpEq for Either<E, V> {
     fn equals(lhs: &Self, rhs: &Self) -> bool {
         match (lhs, rhs) {
@@ -102,5 +121,45 @@ mod test {
         let f = |x: u8| Either::Left((x * 2) as i8);
         assert!(FpEq::equals(&x.flatmap(f), &TestEither::Left(2)));
         // TODO: Left transformer not works.
+    }
+
+    #[test]
+    fn test_or() {
+        assert!(FpEq::equals(
+            &TestEither::pure(1).or(TestEither::pure(2)),
+            &TestEither::pure(1)
+        ));
+        assert!(FpEq::equals(
+            &TestEither::Left(-1).or(TestEither::pure(2)),
+            &TestEither::pure(2)
+        ));
+        assert!(FpEq::equals(
+            &TestEither::Left(-1).or(TestEither::pure(2)),
+            &TestEither::pure(2)
+        ));
+        assert!(FpEq::equals(
+            &TestEither::Left(-1).or(TestEither::Left(-2)),
+            &TestEither::Left(-2)
+        ));
+    }
+
+    #[test]
+    fn test_or_else() {
+        assert!(FpEq::equals(
+            &TestEither::pure(1).or_else(|| TestEither::pure(2)),
+            &TestEither::pure(1)
+        ));
+        assert!(FpEq::equals(
+            &TestEither::Left(-1).or_else(|| TestEither::pure(2)),
+            &TestEither::pure(2)
+        ));
+        assert!(FpEq::equals(
+            &TestEither::Left(-1).or_else(|| TestEither::pure(2)),
+            &TestEither::pure(2)
+        ));
+        assert!(FpEq::equals(
+            &TestEither::Left(-1).or_else(|| TestEither::Left(-2)),
+            &TestEither::Left(-2)
+        ));
     }
 }
