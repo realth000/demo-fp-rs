@@ -94,20 +94,24 @@ impl<In> Applicative for FpOption<In> {
     }
 }
 
+/// Monad is based on [`Applicative`], which has a `flatmap` method to avoid nested
+/// structures when chaining multiple actions.
 pub trait Monad: Applicative {
-    fn flatmap<F, Out>(&self, f: F) -> impl FnMut(Self::Boxed<Self::In>) -> Self::Boxed<Out>
+    /// Calls `f` on itself and returns the single layered boxed value, avoid nesting
+    /// wrapper again and again.
+    fn flatmap<F, Out>(self, f: F) -> Self::Boxed<Out>
     where
-        F: FnMut(Self::In) -> Out;
+        F: FnMut(Self::In) -> Self::Boxed<Out>;
 }
 
 impl<T> Monad for FpOption<T> {
-    fn flatmap<F, Out>(&self, f: F) -> impl FnMut(Self::Boxed<Self::In>) -> Self::Boxed<Out>
+    fn flatmap<F, Out>(self, mut f: F) -> Self::Boxed<Out>
     where
-        F: FnMut(Self::In) -> Out,
+        F: FnMut(Self::In) -> Self::Boxed<Out>,
     {
-        |x: FpOption<Self::In>| match self {
-            FpOption::None => FpOption::None,
-            FpOption::Some(v) => FpOption::Some(f(v)),
+        match self {
+            FpOption::Some(x) => f(x),
+            _ => FpOption::None,
         }
     }
 }
@@ -145,5 +149,19 @@ mod test {
         let x = FpOption::<i32>::None;
         let f = FpOption::pure(|x: i32| x * 2);
         assert!(FpEq::equals(&x.ap(f), &FpOption::None));
+    }
+
+    #[test]
+    fn test_monad() {
+        let x = FpOption::pure(1);
+        assert!(FpEq::equals(
+            &x.flatmap(|x| FpOption::pure(x * 2)),
+            &FpOption::pure(2)
+        ));
+        let x = FpOption::<i32>::None;
+        assert!(FpEq::equals(
+            &x.flatmap(|x| FpOption::pure(x * 2)),
+            &FpOption::None
+        ));
     }
 }
