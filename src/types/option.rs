@@ -11,6 +11,20 @@ pub enum FpOption<T> {
 }
 
 impl<T> FpOption<T> {
+    pub fn is_some(&self) -> bool {
+        match self {
+            FpOption::Some(_) => true,
+            FpOption::None => false,
+        }
+    }
+
+    pub fn is_none(&self) -> bool {
+        match self {
+            FpOption::Some(_) => false,
+            FpOption::None => true,
+        }
+    }
+
     pub fn or(self, v: FpOption<T>) -> FpOption<T> {
         match self {
             FpOption::Some(v) => FpOption::pure(v),
@@ -142,6 +156,18 @@ mod test {
             &x.flatmap(|x| FpOption::pure(x * 2)),
             &FpOption::None
         ));
+    }
+
+    #[test]
+    fn test_is_some() {
+        assert!(FpOption::pure(1).is_some());
+        assert!(!FpOption::<i32>::None.is_some());
+    }
+
+    #[test]
+    fn test_is_none() {
+        assert!(!FpOption::pure(1).is_none());
+        assert!(FpOption::<i32>::None.is_none());
     }
 
     #[test]
