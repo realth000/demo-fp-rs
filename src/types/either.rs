@@ -53,6 +53,18 @@ impl<E, V> Applicative for Either<E, V> {
 
 }
 
+impl<E, V> Monad for Either<E, V> {
+    fn flatmap<F, Out>(self, mut f: F) -> Self::Boxed<Out>
+        where
+            F: FnMut(Self::In) -> Self::Boxed<Out>,
+    {
+        match self {
+            Either::Left(e) => Either::Left(e),
+            Either::Right(v) => f(v),
+        }
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -80,6 +92,17 @@ mod test {
         // TODO: Left transformer not works.
         // let f : Either<i8, dyn FnMut(u8) -> u8 + 'static + Sized> = Either::Left(-1);
         // assert!(FpEq::equals(&x.ap(f), &TestEither::Left(-1)));
+    }
+
+    #[test]
+    fn test_monad() {
+        let x = TestEither::pure(1);
+        let f = |x: u8| Either::Right(x * 2);
+        assert!(FpEq::equals(&x.flatmap(f), &TestEither::Right(2)));
+        let x = TestEither::pure(1);
+        let f = |x: u8| Either::Left((x * 2) as i8);
+        assert!(FpEq::equals(&x.flatmap(f), &TestEither::Left(2)));
+        // TODO: Left transformer not works.
     }
 
 }
