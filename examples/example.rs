@@ -1,5 +1,5 @@
 use fp::concepts::{Applicative, Functor};
-use fp::types::{FpOption, Either};
+use fp::types::{Either, FpOption};
 
 fn main() {
     let option_fn: FpOption<fn(i32) -> i32> = FpOption::Some(|x| x * 2);
@@ -12,5 +12,3 @@ fn main() {
 
     let _ = Either::<i32, i32>::Left(2);
 }
-
-

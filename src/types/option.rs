@@ -10,6 +10,25 @@ pub enum FpOption<T> {
     Some(T),
 }
 
+impl<T> FpOption<T> {
+    pub fn or(self, v: FpOption<T>) -> FpOption<T> {
+        match self {
+            FpOption::Some(v) => FpOption::pure(v),
+            FpOption::None => v,
+        }
+    }
+
+    pub fn or_else<F>(self, mut f: F) -> FpOption<T>
+    where
+        F: FnMut() -> FpOption<T>,
+    {
+        match self {
+            FpOption::Some(v) => FpOption::pure(v),
+            FpOption::None => f(),
+        }
+    }
+}
+
 impl<T> Functor for FpOption<T> {
     type In = T;
     /// For [`FpOption`] type, box the `In` type in [`FpOption`]
@@ -121,6 +140,46 @@ mod test {
         let x = FpOption::<i32>::None;
         assert!(FpEq::equals(
             &x.flatmap(|x| FpOption::pure(x * 2)),
+            &FpOption::None
+        ));
+    }
+
+    #[test]
+    fn test_or() {
+        assert!(FpEq::equals(
+            &FpOption::pure(1).or(FpOption::pure(2)),
+            &FpOption::pure(1)
+        ));
+        assert!(FpEq::equals(
+            &FpOption::pure(1).or(FpOption::None),
+            &FpOption::pure(1)
+        ));
+        assert!(FpEq::equals(
+            &FpOption::<i32>::None.or(FpOption::<i32>::pure(2)),
+            &FpOption::pure(2)
+        ));
+        assert!(FpEq::equals(
+            &FpOption::<i32>::None.or(FpOption::<i32>::None),
+            &FpOption::None
+        ));
+    }
+
+    #[test]
+    fn test_or_else() {
+        assert!(FpEq::equals(
+            &FpOption::pure(1).or_else(|| FpOption::pure(2)),
+            &FpOption::pure(1)
+        ));
+        assert!(FpEq::equals(
+            &FpOption::pure(1).or_else(|| FpOption::None),
+            &FpOption::pure(1)
+        ));
+        assert!(FpEq::equals(
+            &FpOption::<i32>::None.or_else(|| FpOption::<i32>::pure(2)),
+            &FpOption::pure(2)
+        ));
+        assert!(FpEq::equals(
+            &FpOption::<i32>::None.or_else(|| FpOption::<i32>::None),
             &FpOption::None
         ));
     }

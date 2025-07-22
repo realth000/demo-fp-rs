@@ -22,9 +22,9 @@ impl<E, V> Functor for Either<E, V> {
     type In = V;
     type Boxed<Out> = Either<E, Out>;
 
-    fn fmap<F, Out>(self, mut f: F ) -> Self::Boxed<Out>
-        where
-            F: FnMut(Self::In) ->Out,
+    fn fmap<F, Out>(self, mut f: F) -> Self::Boxed<Out>
+    where
+        F: FnMut(Self::In) -> Out,
     {
         match self {
             Either::Left(e) => Either::Left(e),
@@ -41,8 +41,8 @@ impl<E, V> Applicative for Either<E, V> {
     // type Boxed<Out> = Either<E, Out>;
     // Either<E, FnMut(V) -> Out>
     fn ap<F, Out>(self, f: Self::Boxed<F>) -> Either<E, Out>
-        where
-            F: FnMut(Self::In) -> Out,
+    where
+        F: FnMut(Self::In) -> Out,
     {
         match (self, f) {
             (Either::Right(v), Either::Right(func)) => Either::pure(v).fmap(func),
@@ -50,13 +50,12 @@ impl<E, V> Applicative for Either<E, V> {
             (Either::Left(e), _) => Either::Left(e),
         }
     }
-
 }
 
 impl<E, V> Monad for Either<E, V> {
     fn flatmap<F, Out>(self, mut f: F) -> Self::Boxed<Out>
-        where
-            F: FnMut(Self::In) -> Self::Boxed<Out>,
+    where
+        F: FnMut(Self::In) -> Self::Boxed<Out>,
     {
         match self {
             Either::Left(e) => Either::Left(e),
@@ -69,7 +68,7 @@ impl<E, V> Monad for Either<E, V> {
 mod test {
     use super::*;
 
-    type TestEither = Either::<i8, u8>;
+    type TestEither = Either<i8, u8>;
 
     #[test]
     fn test_functor() {
@@ -104,5 +103,4 @@ mod test {
         assert!(FpEq::equals(&x.flatmap(f), &TestEither::Left(2)));
         // TODO: Left transformer not works.
     }
-
 }
