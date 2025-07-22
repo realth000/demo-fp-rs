@@ -1,4 +1,5 @@
-use fp::{Applicative, FpOption, Functor};
+use fp::concepts::{Applicative, Functor};
+use fp::types::FpOption;
 
 fn main() {
     let option_fn: FpOption<fn(i32) -> i32> = FpOption::Some(|x| x * 2);

@@ -1,11 +1,5 @@
-use std::fmt::Debug;
-
-use attrs::eq::FpEq;
-use concepts::{Applicative, Functor, Monad};
-
-pub mod attrs;
-pub mod concepts;
-pub mod types;
+use crate::attrs::FpEq;
+use crate::concepts::{Applicative, Functor, Monad};
 
 /// Custom option type, same as the [`Option`] in std.
 ///
