@@ -4,7 +4,7 @@ pub trait Functor {
     type Boxed<Out>;
 
     /// Run the transform `F` on the input and return the boxed output.
-    fn fmap<F, Out>(self, f: F) -> Self::Boxed<Out>
+    fn map<F, Out>(self, f: F) -> Self::Boxed<Out>
     where
         F: FnMut(Self::In) -> Out;
 }
@@ -16,6 +16,11 @@ pub trait Functor {
 pub trait Applicative: Functor {
     /// Box value `In` in current type.
     fn pure(v: Self::In) -> Self::Boxed<Self::In>;
+
+    /// Alias [`Applicative::pure`].
+    fn of(v: Self::In) -> Self::Boxed<Self::In> {
+        Self::pure(v)
+    }
 
     /// Apply the transform `f` on raw type `In` and returns boxed output.
     fn ap<F, Out>(self, f: Self::Boxed<F>) -> Self::Boxed<Out>

@@ -2,7 +2,7 @@ pub trait FpEq {
     fn equals(lhs: &Self, rhs: &Self) -> bool;
 }
 
-impl<T: Eq> FpEq for T {
+impl<T: Eq + Ord> FpEq for T {
     fn equals(lhs: &Self, rhs: &Self) -> bool {
         lhs == rhs
     }

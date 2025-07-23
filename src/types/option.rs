@@ -27,7 +27,7 @@ impl<T> FpOption<T> {
 
     pub fn or(self, v: FpOption<T>) -> FpOption<T> {
         match self {
-            FpOption::Some(v) => FpOption::pure(v),
+            FpOption::Some(_) => self,
             FpOption::None => v,
         }
     }
@@ -37,7 +37,7 @@ impl<T> FpOption<T> {
         F: FnMut() -> FpOption<T>,
     {
         match self {
-            FpOption::Some(v) => FpOption::pure(v),
+            FpOption::Some(_) => self,
             FpOption::None => f(),
         }
     }
@@ -52,7 +52,7 @@ impl<T> Functor for FpOption<T> {
     /// have a value and return the boxed output.
     ///
     /// If have no value, aka [`FpOption::None`], return the same [`FpOption::None`].
-    fn fmap<F, Out>(self, mut f: F) -> Self::Boxed<Out>
+    fn map<F, Out>(self, mut f: F) -> Self::Boxed<Out>
     where
         F: FnMut(Self::In) -> Out,
     {
@@ -91,7 +91,7 @@ impl<In> Applicative for FpOption<In> {
         F: FnMut(In) -> Out,
     {
         match (self, f) {
-            (FpOption::Some(v), FpOption::Some(func)) => FpOption::pure(v).fmap(func),
+            (FpOption::Some(v), FpOption::Some(func)) => FpOption::pure(v).map(func),
             _ => FpOption::<Out>::None,
         }
     }
@@ -127,9 +127,9 @@ mod test {
     #[test]
     fn test_functor() {
         let x = FpOption::Some(1);
-        assert!(FpEq::equals(&x.fmap(|x| x * 2), &FpOption::Some(2)));
+        assert!(FpEq::equals(&x.map(|x| x * 2), &FpOption::Some(2)));
         let x = FpOption::<i32>::None;
-        assert!(FpEq::equals(&x.fmap(|x| x * 2), &FpOption::None));
+        assert!(FpEq::equals(&x.map(|x| x * 2), &FpOption::None));
     }
 
     #[test]

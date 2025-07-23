@@ -11,7 +11,7 @@ impl<E, V> Either<E, V> {
     pub fn or(self, v: Either<E, V>) -> Either<E, V> {
         match self {
             Either::Left(_) => v,
-            Either::Right(v) => Either::pure(v),
+            Either::Right(_) => self,
         }
     }
 
@@ -21,7 +21,7 @@ impl<E, V> Either<E, V> {
     {
         match self {
             Either::Left(_) => f(),
-            Either::Right(v) => Either::pure(v),
+            Either::Right(_) => self,
         }
     }
 }
@@ -41,7 +41,7 @@ impl<E, V> Functor for Either<E, V> {
     type In = V;
     type Boxed<Out> = Either<E, Out>;
 
-    fn fmap<F, Out>(self, mut f: F) -> Self::Boxed<Out>
+    fn map<F, Out>(self, mut f: F) -> Self::Boxed<Out>
     where
         F: FnMut(Self::In) -> Out,
     {
@@ -64,7 +64,7 @@ impl<E, V> Applicative for Either<E, V> {
         F: FnMut(Self::In) -> Out,
     {
         match (self, f) {
-            (Either::Right(v), Either::Right(func)) => Either::pure(v).fmap(func),
+            (Either::Right(v), Either::Right(func)) => Either::pure(v).map(func),
             (Either::Right(_), Either::Left(e)) => Either::Left(e),
             (Either::Left(e), _) => Either::Left(e),
         }
@@ -92,9 +92,9 @@ mod test {
     #[test]
     fn test_functor() {
         let x = TestEither::Left(-1);
-        assert!(FpEq::equals(&x.fmap(|x| x * 2), &TestEither::Left(-1)));
+        assert!(FpEq::equals(&x.map(|x| x * 2), &TestEither::Left(-1)));
         let x = TestEither::Right(1);
-        assert!(FpEq::equals(&x.fmap(|x| x * 2), &TestEither::Right(2)));
+        assert!(FpEq::equals(&x.map(|x| x * 2), &TestEither::Right(2)));
     }
 
     #[test]
